@@ -1,5 +1,5 @@
 /**
- * Primitive I/O streams library
+ * Easy-to-use I/O streams: file stream implementation
  *
  * License:   $(LINK2 http://www.boost.org/LICENSE_1_0.txt, Boost License 1.0)
  * Copyright: Maxim Freck, 2016–2017.
@@ -18,13 +18,6 @@ class FileStream : from!"freck.streams.stream".Stream
 
 protected:
 	File f;
-
-	@safe pure nothrow immutable(Endian) platformEndian()
-	{
-		union E {ushort s; ubyte[2] b; }
-		E e = {s: 0x0102};
-		return (e.b[0] == 0x02) ? Endian.little : Endian.big;
-	}
 
 public:
 
@@ -98,17 +91,17 @@ public:
 		return cast(uint)(b[0] << 24 | b[1] << 16 | b[2] << 8 | b[3]);
 	}
 
-	override void write(ubyte b)
+	override void write(const ubyte b)
 	{
 		f.put(b);
 	}
 
-	override void write(ubyte[] b)
+	override void write(const ubyte[] b)
 	{
 		f.rawWrite(b);
 	}
 
-	override void write(ushort s)
+	override void write(const ushort s)
 	{
 		if (endian == platformEndian) {
 			f.put(s);
@@ -122,7 +115,7 @@ public:
 		write([cast(ubyte)(s >> 8), cast(ubyte)(s)]);
 	}
 
-	override void write(uint i)
+	override void write(const uint i)
 	{
 		if (endian == platformEndian) {
 			f.put(i);
@@ -142,9 +135,24 @@ public:
 		return f.tell();
 	}
 
-	override ssize_t seek(ssize_t pos)
+	override ssize_t seek(const sdiff_t pos, const Seek origin = Seek.set)
 	{
-		f.seek(pos);
+		import std.stdio: SEEK_SET, SEEK_CUR, SEEK_END;
+
+		int orig = 0;
+		with (Seek) final switch (origin) {
+			case set:
+				orig = SEEK_SET;
+				break;
+			case cur:
+				orig = SEEK_CUR;
+				break;
+			case end:
+				orig = SEEK_END;
+				break;
+		}
+
+		f.seek(pos, orig);
 		return seek();
 	}
 

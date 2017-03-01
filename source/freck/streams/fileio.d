@@ -1,5 +1,5 @@
 /**
- * Primitive I/O streams library
+ * Easy-to-use I/O streams: extinsion to standard File I/O
  *
  * License:   $(LINK2 http://www.boost.org/LICENSE_1_0.txt, Boost License 1.0)
  * Copyright: Maxim Freck, 2016–2017.

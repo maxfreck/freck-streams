@@ -1,5 +1,5 @@
 /**
- * Primitive I/O streams library
+ * Easy-to-use I/O streams: abstract stream
  *
  * License:   $(LINK2 http://www.boost.org/LICENSE_1_0.txt, Boost License 1.0)
  * Copyright: Maxim Freck, 2016–2017.
@@ -7,6 +7,7 @@
  */
 module freck.streams.stream;
 
+import freck.streams.mixins;
 
 ///Endiannes: big, little
 enum Endian {
@@ -16,6 +17,16 @@ enum Endian {
 
 ///
 alias ssize_t = ulong;
+
+///
+alias sdiff_t = long;
+
+///
+enum Seek {
+	set,
+	cur,
+	end
+}
 
 ///Abstract i/o stream interface
 class Stream {
@@ -56,7 +67,14 @@ public:
 	 * Params:
 	 *  b = The ubyte to write to the stream
 	 */
-	abstract void write(ubyte b);
+	abstract void write(const ubyte b);
+
+	///operator "~" equivalent for write()
+	typeof(this) opBinary(string op)(const ubyte b) if (op == "~")
+	{
+		write(b);
+		return this;
+	}
 
 	/***********************************
 	 * Writes an array of unsigned bytes to the stream
@@ -64,7 +82,14 @@ public:
 	 * Params:
 	 *  b = The array of ubyte to write to the stream
 	 */
-	abstract void write(ubyte[] b);
+	abstract void write(const ubyte[] b);
+
+	///operator "~" equivalent for write()
+	typeof(this) opBinary(string op)(const ubyte[] b) if (op == "~")
+	{
+		write(b);
+		return this;
+	}
 
 	/***********************************
 	 * Writes an unsigned short to the stream
@@ -72,7 +97,14 @@ public:
 	 * Params:
 	 *  s = The ushort to write to the stream
 	 */
-	abstract void write(ushort s);
+	abstract void write(const ushort s);
+
+	///operator "~" equivalent for write()
+	typeof(this) opBinary(string op)(const ushort s) if (op == "~")
+	{
+		write(s);
+		return this;
+	}
 
 	/***********************************
 	 * Writes an unsigned int to the stream
@@ -80,7 +112,22 @@ public:
 	 * Params:
 	 *  i = The uint to write to the stream
 	 */
-	abstract void write(uint i);
+	abstract void write(const uint i);
+
+	///operator "~" equivalent for write()
+	typeof(this) opBinary(string op)(const uint i) if (op == "~")
+	{
+		write(i);
+		return this;
+	}
+
+	///operator "~" equivalent for writeRaw()
+	typeof(this) opBinary(string op, T)(const T var) if (op == "~")
+	{
+		import freck.streams.raw;
+		this.writeRaw(var);
+		return this;
+	}
 
 	/***********************************
 	 * Returns the current positon in the stream
@@ -93,9 +140,28 @@ public:
 	 * Returns: The current positon in the stream
 	 *
 	 * Params:
-	 *  pos = The number of bytes to offset from the stream start
+	 *  pos = The number of bytes to offset from origin
+	 *  origin = Position used as reference for the offset. It is specified by one of the following constants:
+	 *           Seek.set - beginning of the stream;
+	 *           Seek.cur - current position of the pointer;
+	 *           Seek.end - end of the stream.
 	 */
-	abstract ssize_t seek(ssize_t pos);
+	abstract ssize_t seek(const sdiff_t pos, const Seek origin = Seek.set);
+
+	///operator "<<" equivalent for writeRaw(-pos, Seek.cur)
+	typeof(this) opBinary(string op)(const sdiff_t pos) if (op == "<<")
+	{
+		seek(-pos, Seek.cur);
+		return this;
+	}
+
+	///operator ">>" equivalent for writeRaw(pos, Seek.cur)
+	typeof(this) opBinary(string op)(const sdiff_t pos) if (op == ">>")
+	{
+		seek(pos, Seek.cur);
+		return this;
+	}
+
 
 	/***********************************
 	 * Returns: The lenght of the stream in bytes
@@ -112,5 +178,15 @@ public:
 	 */
 	void setEndian(Endian e) {
 		this.endian = e;
+	}
+
+	/***********************************
+	 * Returns the platform endianness.
+	 */
+	@safe static pure nothrow immutable(Endian) platformEndian()
+	{
+		union E {ushort s; ubyte[2] b; }
+		E e = {s: 0x0102};
+		return (e.b[0] == 0x02) ? Endian.little : Endian.big;
 	}
 }

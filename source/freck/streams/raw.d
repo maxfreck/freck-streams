@@ -1,5 +1,5 @@
 /**
- * Primitive I/O streams library
+ * Easy-to-use I/O streams: raw I/O
  *
  * License:   $(LINK2 http://www.boost.org/LICENSE_1_0.txt, Boost License 1.0)
  * Copyright: Maxim Freck, 2016–2017.
@@ -16,7 +16,8 @@ import freck.streams.mixins;
  *  s = The stream
  *  var = The variable to write
  */
-void writeRaw(T)(from!"freck.streams.stream".Stream s, T var) {
+void writeRaw(T)(from!"freck.streams.stream".Stream s, const T var)
+{
 	union Buffer {ubyte[T.sizeof] b; T var;}
 	Buffer buf;
 	buf.var = var;

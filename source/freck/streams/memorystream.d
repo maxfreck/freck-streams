@@ -1,5 +1,5 @@
 /**
- * Primitive I/O streams library
+ * Easy-to-use I/O streams: memory stream implementation
  *
  * License:   $(LINK2 http://www.boost.org/LICENSE_1_0.txt, Boost License 1.0)
  * Copyright: Maxim Freck, 2016–2017.
@@ -12,6 +12,7 @@ import freck.streams.mixins;
 ///Memory i/o stream
 class MemoryStream : from!"freck.streams.stream".Stream {
 	import freck.streams.exception, freck.streams.stream;
+	import freck.streams.raw: writeRaw;
 
 protected:
 	ubyte[] buf;
@@ -82,7 +83,7 @@ public:
 
 	override ubyte readUbyte()
 	{
-		if ((this.ptr + ubyte.sizeof) > this.length()) {
+		if ((this.ptr + ubyte.sizeof) > this.length) {
 			throw new StreamsException(boundsError);
 		}
 
@@ -91,7 +92,7 @@ public:
 
 	override ubyte[] readUbyte(size_t n)
 	{
-		if ((this.ptr + n) > this.length()) {
+		if ((this.ptr + n) > this.length) {
 			throw new StreamsException(boundsError);
 		}
 
@@ -108,7 +109,7 @@ public:
 
 	override ushort readUshort()
 	{
-		if ((this.ptr + ushort.sizeof) > this.length()) {
+		if ((this.ptr + ushort.sizeof) > this.length) {
 			throw new StreamsException(boundsError);
 		}
 
@@ -132,7 +133,7 @@ public:
 			| this.buf[this.ptr++] << 8 | this.buf[this.ptr++]);
 	}
 
-	override void write(ubyte b)
+	override void write(const ubyte b)
 	{
 		if (this.ptr == this.buf.length) {
 			this.buf ~= b;
@@ -142,7 +143,7 @@ public:
 		}
 	}
 
-	override void write(ubyte[] b)
+	override void write(const ubyte[] b)
 	{
 		if (this.ptr == this.buf.length) {
 			this.buf ~= b;
@@ -156,8 +157,13 @@ public:
 		}
 	}
 
-	override void write(ushort s)
+	override void write(const ushort s)
 	{
+		if (endian == platformEndian) {
+			writeRaw(this, s);
+			return;
+		}
+
 		if (endian == Endian.little) {
 			write([cast(ubyte)(s), cast(ubyte)(s >> 8)]);
 			return;
@@ -165,8 +171,13 @@ public:
 		write([cast(ubyte)(s >> 8), cast(ubyte)(s)]);
 	}
 
-	override void write(uint i)
+	override void write(const uint i)
 	{
+		if (endian == platformEndian) {
+			writeRaw(this, i);
+			return;
+		}
+
 		if (endian == Endian.little) {
 			write([cast(ubyte)(i), cast(ubyte)(i >> 8), cast(ubyte)(i >> 16), cast(ubyte)(i >> 24)]);
 			return;
@@ -179,9 +190,22 @@ public:
 		return this.ptr;
 	}
 
-	override ssize_t seek(ssize_t pos)
+	override ssize_t seek(const sdiff_t pos, const Seek origin = Seek.set)
 	{
-		this.ptr = (pos > this.buf.length) ? this.buf.length : cast(size_t)(pos);
+		with (Seek) final switch (origin) {
+			case set:
+				this.ptr = cast(size_t)(pos);
+				break;
+			case cur:
+				this.ptr = cast(size_t)(this.ptr + pos);
+				break;
+			case end:
+				this.ptr = cast(size_t)(this.buf.length - pos);
+				break;
+		}
+
+		if (this.ptr > this.buf.length) this.ptr = this.buf.length;
+
 		return this.ptr;
 	}
 

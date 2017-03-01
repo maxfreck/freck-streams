@@ -1,6 +1,6 @@
 {
 	"name" : "freck-streams",
-	"description" : "Primitive byte streams read-write library",
+	"description" : "Easy-to-use I/O streams library",
 	"authors" : [ "Maxim Freck" ],
 	"license" : "BOOST-1.0",
 
