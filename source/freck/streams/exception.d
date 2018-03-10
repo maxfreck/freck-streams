@@ -15,6 +15,7 @@ string invalidMode = "Invalid mode specified during file open";
 string nonSeekable = "This stream is not seekable";
 string onlySetOrigin = "This stream can only seek with Seek.set";
 string writeToNonwritable = "This stream is non-writable";
+string readFromNoreadable = "This stream is non-readable";
 
 class StreamsException : Exception {
 	this(string s, string fn = __FILE__, size_t ln = __LINE__) @safe pure nothrow
