@@ -7,7 +7,8 @@
  */
 module freck.streams.murmur3;
 
-import freck.streams.mixins;
+import freck.streams.streaminterface;
+import freck.streams.util: readScalar;
 
 /+@nogc+/
 private pure nothrow uint rotl32(uint x, uint r) {
@@ -32,7 +33,7 @@ private pure nothrow uint fmix32(uint h) {
  *  s = The stream
  *  seed = An optional seed
  */
-@property uint murmur3(from!"freck.streams.stream".Stream s, uint seed = 0)
+@property uint murmur3(StreamInterface s, uint seed = 0)
 {
 	import freck.streams.stream;
 
@@ -44,11 +45,11 @@ private pure nothrow uint fmix32(uint h) {
 
 	auto h1 = seed;
 
-	immutable auto seekSave = s.seek();
+	immutable auto seekSave = s.tell();
 	s.seek(0);
 
 	foreach (_; 0 .. nblocks) {
-		auto k1 = s.readUint();
+		auto k1 = s.readScalar!uint;//s.readUint();
 
 		k1 *= c1;
 		k1 = rotl32(k1, 15);
@@ -60,7 +61,7 @@ private pure nothrow uint fmix32(uint h) {
 	}
 
 	uint k1 = 0;
-	const ubyte[] tail = s.readUbyte(cast(size_t)(length - (nblocks << 2)));
+	const ubyte[] tail = s.read(cast(size_t)(length - (nblocks << 2)));
 	final switch (length & 3) {
 	case 3:
 		k1 ^= tail[2] << 16;

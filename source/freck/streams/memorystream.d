@@ -7,19 +7,22 @@
  */
 module freck.streams.memorystream;
 
-import freck.streams.mixins;
+import freck.streams.stream;
 
 ///Memory i/o stream
-class MemoryStream : from!"freck.streams.stream".Stream {
-	import freck.streams.exception, freck.streams.stream;
-	import freck.streams.raw: writeRaw;
+class MemoryStream : Stream
+{
+	import freck.streams.exception;
+	import freck.streams.util: writeRaw;
 
 protected:
 	ubyte[] buf;
 	size_t ptr;
 
-	this(ubyte[] buf, Endian e) {
-		this.setEndian(e);
+	this(ubyte[] buf, string[string] metadata = null, Endian e = Endian.platform)
+	{
+		super(metadata, e);
+
 		this.buf = buf;
 		this.ptr = 0;
 	}
@@ -32,9 +35,9 @@ public:
 	 * Params:
 	 *  e = Endianness (default: little)
 	 */
-	static MemoryStream fromScratch(Endian e = Endian.little)
+	static MemoryStream fromScratch(string[string] metadata = null, Endian e = Endian.platform)
 	{
-		return new MemoryStream([], e);
+		return new MemoryStream([], metadata, e);
 	}
 
 	/***********************************
@@ -44,9 +47,9 @@ public:
 	 *  buf = Initial array
 	 *  e = Endianness (default: little)
 	 */
-	static MemoryStream fromBytes(ubyte[] buf, Endian e = Endian.little)
+	static MemoryStream fromBytes(ubyte[] buf, string[string] metadata = null, Endian e = Endian.platform)
 	{
-		return new MemoryStream(buf, e);
+		return new MemoryStream(buf, metadata, e);
 	}
 
 	/***********************************
@@ -56,7 +59,7 @@ public:
 	 *  fileName = File name
 	 *  e = Endianness (default: little)
 	 */
-	static MemoryStream fromFile(const string fileName, Endian e = Endian.little)
+	static MemoryStream fromFile(in string fileName, string[string] metadata = null, Endian e = Endian.platform)
 	{
 		import std.stdio: File;
 
@@ -64,133 +67,31 @@ public:
 		auto buffer = new ubyte[cast(uint)(f.size())];
 		f.rawRead(buffer);
 
-		return new MemoryStream(buffer, e);
+		return new MemoryStream(buffer, metadata, e);
 	}
 
-	/***********************************
-	 * Saves stream content into a file
-	 *
-	 * Params:
-	 *  fileName = File name
-	 */
-	void saveAsFile(const string fileName)
+
+	override @property ssize_t length()
 	{
-		import std.stdio: File;
-
-		auto f = File(fileName, "wb");
-		f.rawWrite(this.buf);
+		return this.buf.length;
 	}
 
-	override ubyte readUbyte()
-	{
-		if ((this.ptr + ubyte.sizeof) > this.length) {
-			throw new StreamsException(boundsError);
-		}
-
-		return this.buf[this.ptr++];
-	}
-
-	override ubyte[] readUbyte(size_t n)
-	{
-		if ((this.ptr + n) > this.length) {
-			throw new StreamsException(boundsError);
-		}
-
-		auto a = this.ptr;
-		this.ptr += n;
-		return this.buf[a .. this.ptr];
-	}
-
-	ubyte[] readAllUbyte()
-	{
-		this.ptr = this.buf.length;
-		return this.buf;
-	}
-
-	override ushort readUshort()
-	{
-		if ((this.ptr + ushort.sizeof) > this.length) {
-			throw new StreamsException(boundsError);
-		}
-
-		if (endian == Endian.little) {
-			return cast(uint)(this.buf[this.ptr++] | this.buf[this.ptr++] << 8);
-		}
-		return cast(uint)(this.buf[this.ptr++] << 8 | this.buf[this.ptr++]);
-	}
-
-	override uint readUint()
-	{
-		if ((this.ptr + uint.sizeof) > this.length()) {
-			throw new StreamsException(boundsError);
-		}
-
-		if (endian == Endian.little) {
-			return cast(uint)(this.buf[this.ptr++] | this.buf[this.ptr++] << 8
-				| this.buf[this.ptr++] << 16 | this.buf[this.ptr++] << 24);
-		}
-		return cast(uint)(this.buf[this.ptr++] << 24 | this.buf[this.ptr++] << 16
-			| this.buf[this.ptr++] << 8 | this.buf[this.ptr++]);
-	}
-
-	override void write(const ubyte b)
-	{
-		if (this.ptr == this.buf.length) {
-			this.buf ~= b;
-			this.ptr++;
-		} else {
-			this.buf[this.ptr++] = b;
-		}
-	}
-
-	override void write(const ubyte[] b)
-	{
-		if (this.ptr == this.buf.length) {
-			this.buf ~= b;
-			this.ptr = this.buf.length;
-		} else if (this.ptr+b.length < this.buf.length) {
-			this.buf[this.ptr .. (this.ptr + b.length)] = b;
-		} else {
-			this.buf.length = this.ptr;
-			this.buf ~= b;
-			this.ptr = this.buf.length;
-		}
-	}
-
-	override void write(const ushort s)
-	{
-		if (endian == platformEndian) {
-			writeRaw(this, s);
-			return;
-		}
-
-		if (endian == Endian.little) {
-			write([cast(ubyte)(s), cast(ubyte)(s >> 8)]);
-			return;
-		}
-		write([cast(ubyte)(s >> 8), cast(ubyte)(s)]);
-	}
-
-	override void write(const uint i)
-	{
-		if (endian == platformEndian) {
-			writeRaw(this, i);
-			return;
-		}
-
-		if (endian == Endian.little) {
-			write([cast(ubyte)(i), cast(ubyte)(i >> 8), cast(ubyte)(i >> 16), cast(ubyte)(i >> 24)]);
-			return;
-		}
-		write([cast(ubyte)(i >> 24), cast(ubyte)(i >> 16), cast(ubyte)(i >> 8), cast(ubyte)(i)]);
-	}
-
-	override ssize_t seek()
+	override ssize_t tell()
 	{
 		return this.ptr;
 	}
 
-	override ssize_t seek(const sdiff_t pos, const Seek origin = Seek.set)
+	override @property bool isEmpty()
+	{
+		return (this.ptr == (this.length));
+	}
+
+	override bool isSeekable()
+	{
+		return true;
+	}
+
+	override ssize_t seek(in sdiff_t pos, in Seek origin = Seek.set)
 	{
 		with (Seek) final switch (origin) {
 			case set:
@@ -209,15 +110,61 @@ public:
 		return this.ptr;
 	}
 
-	override @property ssize_t length()
+	override bool isWritable()
 	{
-		return this.buf.length;
+		return true;
 	}
 
-	override @property bool isEmpty()
+	override void write(in ubyte b)
 	{
-		return (this.ptr == (this.length));
+		if (this.ptr == this.buf.length) {
+			this.buf ~= b;
+			this.ptr++;
+		} else {
+			this.buf[this.ptr++] = b;
+		}
 	}
+
+	override void write(in ubyte[] b)
+	{
+		if (this.ptr == this.buf.length) {
+			this.buf ~= b;
+			this.ptr = this.buf.length;
+		} else if (this.ptr+b.length < this.buf.length) {
+			this.buf[this.ptr .. (this.ptr + b.length)] = b;
+		} else {
+			this.buf.length = this.ptr;
+			this.buf ~= b;
+			this.ptr = this.buf.length;
+		}
+	}
+
+	override bool isReadable()
+	{
+		return true;
+	}
+
+	override ubyte read()
+	{
+		if ((this.ptr + ubyte.sizeof) > this.length) {
+			throw new StreamsException(boundsError);
+		}
+
+		return this.buf[this.ptr++];
+	}
+
+	override ubyte[] read(in size_t n)
+	{
+		auto a = this.ptr;
+		this.ptr += ((this.ptr + n) > this.length) ? (this.length - this.ptr) : n;
+		return this.buf[a .. this.ptr];
+	}
+
+	override ubyte[] getContents()
+	{
+		return this.buf;
+	}
+
 }
 
 unittest

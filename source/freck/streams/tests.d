@@ -9,7 +9,7 @@ module freck.streams.tests;
 
 version(unittest)
 {
-	import freck.streams.stream, freck.streams.raw;
+	import freck.streams.stream, freck.streams.util;
 
 	void assertSimpleReads(Stream stream)
 	{
@@ -18,25 +18,25 @@ version(unittest)
 		stream.write(cast(ubyte[])([0x01, 0x02, 0x03, 0x04]));
 
 		stream.seek(0);
-		auto read1 = stream.readUshort();
+		auto read1 = stream.readScalar!ushort;
 		assert(read1 == 0x0201);
-		auto read2 = stream.readUshort();
+		auto read2 = stream.readScalar!ushort;
 		assert(read2 == 0x0403);
 
 		stream.seek(0);
 		stream.setEndian(Endian.big);
-		auto read3 = stream.readUshort();
+		auto read3 = stream.readScalar!ushort;
 		assert(read3 == 0x0102);
-		auto read4 = stream.readUshort();
+		auto read4 = stream.readScalar!ushort;
 		assert(read4 == 0x0304);
 
 		stream.seek(0);
-		auto read5 = stream.readUint();
+		auto read5 = stream.readScalar!uint;
 		assert(read5 == 0x01020304);
 
 		stream.seek(0);
 		stream.setEndian(Endian.little);
-		auto read6 = stream.readUint();
+		auto read6 = stream.readScalar!uint;
 		assert(read6 == 0x04030201);
 
 		stream.seek(0);
@@ -46,30 +46,30 @@ version(unittest)
 	{
 		stream.setEndian(Endian.little);
 
-		stream.write(cast(ushort)(0x0201));
+		stream.writeScalar!ushort(0x0201);
 		stream.seek(0);
-		auto read1 = stream.readUbyte(2);
+		auto read1 = stream.read(2);
 		assert(read1 == cast(ubyte[])([0x01, 0x02]));
 
 		stream.seek(0);
 		stream.setEndian(Endian.big);
-		stream.write(cast(ushort)(0x0201));
+		stream.writeScalar!ushort(0x0201);
 		stream.seek(0);
-		auto read2 = stream.readUbyte(2);
+		auto read2 = stream.read(2);
 		assert(read2 == cast(ubyte[])([0x02, 0x01]));
 
 		stream.seek(0);
 		stream.setEndian(Endian.little);
-		stream.write(cast(uint)(0x04030201));
+		stream.writeScalar!uint(0x04030201);
 		stream.seek(0);
-		auto read3 = stream.readUbyte(4);
+		auto read3 = stream.read(4);
 		assert(read3 == cast(ubyte[])([0x01, 0x02, 0x03, 0x04]));
 
 		stream.seek(0);
 		stream.setEndian(Endian.big);
-		stream.write(cast(uint)(0x04030201));
+		stream.writeScalar!uint(0x04030201);
 		stream.seek(0);
-		auto read4 = stream.readUbyte(4);
+		auto read4 = stream.read(4);
 		assert(read4 == cast(ubyte[])([0x04, 0x03, 0x02, 0x01]));
 	}
 
@@ -91,7 +91,7 @@ version(unittest)
 		stream.writeRaw(t);
 
 		stream.seek(0);
-		auto read = cast(string)(stream.readUbyte(5));
+		auto read = cast(string)(stream.read(5));
 		assert(read == "Test!");
 	}
 

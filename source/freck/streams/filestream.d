@@ -7,135 +7,62 @@
  */
 module freck.streams.filestream;
 
-import freck.streams.mixins;
+import freck.streams.stream;
 
 
 ///File i/o stream
-class FileStream : from!"freck.streams.stream".Stream
+class FileStream : Stream
 {
 	import std.stdio: File;
-	import freck.streams.exception, freck.streams.stream, freck.streams.fileio;
+	import freck.streams.exception;
 
 protected:
+	enum READABLE = [
+		"r", "w+", "r+", "x+", "c+","rb", "w+b", "r+b", "x+b","c+b", "rt", "w+t", "r+t","x+t", "c+t", "a+"
+	];
+
+	enum WRITABLE = [
+		"w", "w+", "rw", "r+", "x+","c+", "wb", "w+b", "r+b","x+b", "c+b", "w+t", "r+t","x+t", "c+t", "a", "a+"
+	];
+
 	File f;
+	string mode;
 
 public:
 
-	this(string name, string mode = "rb", Endian e = Endian.little)
+	this(string name, string mode = "rb", string[string] metadata = null, Endian e = Endian.platform)
 	{
-		this.setEndian(e);
+		super(metadata, e);
+		this.mode = mode;
 		this.f.open(name, mode);
 	}
 
-	override ubyte readUbyte()
+	~this()
 	{
-		if ((f.tell + ubyte.sizeof) > f.size()) {
-			throw new StreamsException(boundsError);
-		}
-
-		ubyte[1] b;
-		f.rawRead(b);
-
-		return b[0];
+		f.close();
 	}
 
-	override ubyte[] readUbyte(size_t n)
+	override ssize_t length()
 	{
-		if ((f.tell + ubyte.sizeof*n) > f.size) {
-			throw new StreamsException(boundsError);
-		}
-
-		auto buf = new ubyte[n];
-		f.rawRead(buf);
-
-		return buf;
+		return f.size();
 	}
 
-	override ushort readUshort()
-	{
-		if ((f.tell + ushort.sizeof) > f.size) {
-			throw new StreamsException(boundsError);
-		}
-
-		if (endian == platformEndian) {
-			return f.get!ushort;
-		}
-
-		ubyte[2] b;
-		f.rawRead(b);
-
-		if (endian == Endian.little) {
-			return cast(uint)(b[0] | b[1] << 8);
-		}
-		
-		return cast(uint)(b[0] << 8 | b[1]);
-	}
-
-	override uint readUint()
-	{
-		if ((f.tell() + uint.sizeof) > f.size()) {
-			throw new StreamsException(boundsError);
-		}
-
-		if (endian == platformEndian) {
-			return f.get!uint;
-		}
-
-		ubyte[4] b;
-		f.rawRead(b);
-
-		if (endian == Endian.little) {
-			return cast(uint)(b[0] | b[1] << 8 | b[2] << 16 | b[3] << 24);
-		}
-		
-		return cast(uint)(b[0] << 24 | b[1] << 16 | b[2] << 8 | b[3]);
-	}
-
-	override void write(const ubyte b)
-	{
-		f.put(b);
-	}
-
-	override void write(const ubyte[] b)
-	{
-		f.rawWrite(b);
-	}
-
-	override void write(const ushort s)
-	{
-		if (endian == platformEndian) {
-			f.put(s);
-			return;
-		}
-
-		if (endian == Endian.little) {
-			write([cast(ubyte)(s), cast(ubyte)(s >> 8)]);
-			return;
-		}
-		write([cast(ubyte)(s >> 8), cast(ubyte)(s)]);
-	}
-
-	override void write(const uint i)
-	{
-		if (endian == platformEndian) {
-			f.put(i);
-			return;
-		}
-
-		if (endian == Endian.little) {
-			write([cast(ubyte)(i), cast(ubyte)(i >> 8), cast(ubyte)(i >> 16), cast(ubyte)(i >> 24)]);
-			return;
-		}
-
-		write([cast(ubyte)(i >> 24), cast(ubyte)(i >> 16), cast(ubyte)(i >> 8), cast(ubyte)(i)]);
-	}
-
-	override ssize_t seek()
+	override ssize_t tell()
 	{
 		return f.tell();
 	}
 
-	override ssize_t seek(const sdiff_t pos, const Seek origin = Seek.set)
+	override bool isEmpty()
+	{
+		return f.eof();
+	}
+
+	override bool isSeekable()
+	{
+		return true;
+	}
+
+	override ssize_t seek(in sdiff_t pos, in Seek origin = Seek.set)
 	{
 		import std.stdio: SEEK_SET, SEEK_CUR, SEEK_END;
 
@@ -153,17 +80,56 @@ public:
 		}
 
 		f.seek(pos, orig);
-		return seek();
+		return tell();
 	}
 
-	override @property ssize_t length()
+	override bool isWritable()
 	{
-		return f.size();
+		import std.algorithm: canFind;
+		return WRITABLE.canFind(this.mode);
 	}
 
-	override @property bool isEmpty()
+	override void write(in ubyte b)
 	{
-		return f.eof();
+		f.rawWrite([b]);
+	}
+
+	override void write(in ubyte[] b)
+	{
+		f.rawWrite(b);
+	}
+
+	override bool isReadable()
+	{
+		import std.algorithm: canFind;
+		return READABLE.canFind(this.mode);
+	}
+
+	override ubyte read()
+	{
+		if ((f.tell + ubyte.sizeof) > f.size()) {
+			throw new StreamsException(boundsError);
+		}
+
+		ubyte[1] b;
+		f.rawRead(b);
+
+		return b[0];
+	}
+
+	override ubyte[] read(in size_t n)
+	{
+		auto buf = new ubyte[(f.tell + n > f.size) ? f.size - f.tell : n];
+		f.rawRead(buf);
+
+		return buf;
+	}
+
+	override ubyte[] getContents()
+	{
+		auto ret = new ubyte[f.size];
+		f.rawRead(ret);
+		return ret;
 	}
 }
 
