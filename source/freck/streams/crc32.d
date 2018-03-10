@@ -23,11 +23,11 @@ uint crc32(from!"freck.streams.stream".Stream s)
 
 	uint crc = 0xffffffff;
 
-	immutable auto seekSave = s.seek();
+	immutable auto seekSave = s.tell();
 	s.seek(0);
 
 	foreach (_; 0 .. s.length) {
-		crc = crcTable[(crc ^ s.readUbyte) & 0xFF] ^ (crc >> 8);
+		crc = crcTable[(crc ^ s.read) & 0xFF] ^ (crc >> 8);
 	}
 
 	s.seek(seekSave);
