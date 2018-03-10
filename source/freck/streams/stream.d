@@ -47,7 +47,7 @@ public:
 	 * Params:
 	 *  n = The number of bytes to read from the stream
 	 */
-	abstract ubyte[] readUbyte(size_t n);
+	abstract ubyte[] readUbyte(in size_t n);
 
 	/***********************************
 	 * Reads an unsigned short from the stream
@@ -67,10 +67,10 @@ public:
 	 * Params:
 	 *  b = The ubyte to write to the stream
 	 */
-	abstract void write(const ubyte b);
+	abstract void write(in ubyte b);
 
 	///operator "~" equivalent for write()
-	typeof(this) opBinary(string op)(const ubyte b) if (op == "~")
+	typeof(this) opBinary(string op)(in ubyte b) if (op == "~")
 	{
 		write(b);
 		return this;
@@ -82,10 +82,10 @@ public:
 	 * Params:
 	 *  b = The array of ubyte to write to the stream
 	 */
-	abstract void write(const ubyte[] b);
+	abstract void write(in ubyte[] b);
 
 	///operator "~" equivalent for write()
-	typeof(this) opBinary(string op)(const ubyte[] b) if (op == "~")
+	typeof(this) opBinary(string op)(in ubyte[] b) if (op == "~")
 	{
 		write(b);
 		return this;
@@ -97,10 +97,10 @@ public:
 	 * Params:
 	 *  s = The ushort to write to the stream
 	 */
-	abstract void write(const ushort s);
+	abstract void write(in ushort s);
 
 	///operator "~" equivalent for write()
-	typeof(this) opBinary(string op)(const ushort s) if (op == "~")
+	typeof(this) opBinary(string op)(in ushort s) if (op == "~")
 	{
 		write(s);
 		return this;
@@ -112,17 +112,17 @@ public:
 	 * Params:
 	 *  i = The uint to write to the stream
 	 */
-	abstract void write(const uint i);
+	abstract void write(in uint i);
 
 	///operator "~" equivalent for write()
-	typeof(this) opBinary(string op)(const uint i) if (op == "~")
+	typeof(this) opBinary(string op)(in uint i) if (op == "~")
 	{
 		write(i);
 		return this;
 	}
 
 	///operator "~" equivalent for writeRaw()
-	typeof(this) opBinary(string op, T)(const T var) if (op == "~")
+	typeof(this) opBinary(string op, T)(in T var) if (op == "~")
 	{
 		import freck.streams.raw;
 		this.writeRaw(var);
@@ -146,17 +146,17 @@ public:
 	 *           Seek.cur - current position of the pointer;
 	 *           Seek.end - end of the stream.
 	 */
-	abstract ssize_t seek(const sdiff_t pos, const Seek origin = Seek.set);
+	abstract ssize_t seek(in sdiff_t pos, in Seek origin = Seek.set);
 
 	///operator "<<" equivalent for writeRaw(-pos, Seek.cur)
-	typeof(this) opBinary(string op)(const sdiff_t pos) if (op == "<<")
+	typeof(this) opBinary(string op)(in sdiff_t pos) if (op == "<<")
 	{
 		seek(-pos, Seek.cur);
 		return this;
 	}
 
 	///operator ">>" equivalent for writeRaw(pos, Seek.cur)
-	typeof(this) opBinary(string op)(const sdiff_t pos) if (op == ">>")
+	typeof(this) opBinary(string op)(in sdiff_t pos) if (op == ">>")
 	{
 		seek(pos, Seek.cur);
 		return this;

@@ -56,7 +56,7 @@ public:
 	 *  fileName = File name
 	 *  e = Endianness (default: little)
 	 */
-	static MemoryStream fromFile(const string fileName, Endian e = Endian.little)
+	static MemoryStream fromFile(in string fileName, Endian e = Endian.little)
 	{
 		import std.stdio: File;
 
@@ -76,7 +76,7 @@ public:
 		return this.buf[this.ptr++];
 	}
 
-	override ubyte[] readUbyte(size_t n)
+	override ubyte[] readUbyte(in size_t n)
 	{
 		auto a = this.ptr;
 		this.ptr += ((this.ptr + n) > this.length) ? (this.length - this.ptr) : n;
@@ -115,7 +115,7 @@ public:
 			| this.buf[this.ptr++] << 8 | this.buf[this.ptr++]);
 	}
 
-	override void write(const ubyte b)
+	override void write(in ubyte b)
 	{
 		if (this.ptr == this.buf.length) {
 			this.buf ~= b;
@@ -125,7 +125,7 @@ public:
 		}
 	}
 
-	override void write(const ubyte[] b)
+	override void write(in ubyte[] b)
 	{
 		if (this.ptr == this.buf.length) {
 			this.buf ~= b;
@@ -139,7 +139,7 @@ public:
 		}
 	}
 
-	override void write(const ushort s)
+	override void write(in ushort s)
 	{
 		if (endian == platformEndian) {
 			writeRaw(this, s);
@@ -153,7 +153,7 @@ public:
 		write([cast(ubyte)(s >> 8), cast(ubyte)(s)]);
 	}
 
-	override void write(const uint i)
+	override void write(in uint i)
 	{
 		if (endian == platformEndian) {
 			writeRaw(this, i);
@@ -172,7 +172,7 @@ public:
 		return this.ptr;
 	}
 
-	override ssize_t seek(const sdiff_t pos, const Seek origin = Seek.set)
+	override ssize_t seek(in sdiff_t pos, const Seek origin = Seek.set)
 	{
 		with (Seek) final switch (origin) {
 			case set:
