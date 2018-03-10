@@ -160,6 +160,11 @@ public:
 		return this.buf[a .. this.ptr];
 	}
 
+	override ubyte[] getContents()
+	{
+		return this.buf;
+	}
+
 }
 
 unittest

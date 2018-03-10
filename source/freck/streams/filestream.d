@@ -125,6 +125,12 @@ public:
 		return buf;
 	}
 
+	override ubyte[] getContents()
+	{
+		auto ret = new ubyte[f.size];
+		f.rawRead(ret);
+		return ret;
+	}
 }
 
 unittest

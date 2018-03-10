@@ -117,6 +117,12 @@ interface StreamInterface
 	ubyte[] read(in size_t n);
 
 	/***********************************
+	 * Reads entire stream as ubyte[] array
+	 * Returns: The array of unsigned bytes read from the stream
+	 */
+	ubyte[] getContents();
+
+	/***********************************
 	* Returns: stream metadata by a specified key
 	*
 	* Params:
