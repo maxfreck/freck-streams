@@ -9,7 +9,7 @@ module freck.streams.tests;
 
 version(unittest)
 {
-	import freck.streams.stream, freck.streams.raw;
+	import freck.streams.stream, freck.streams.util;
 
 	void assertSimpleReads(Stream stream)
 	{

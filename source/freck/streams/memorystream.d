@@ -12,7 +12,7 @@ import freck.streams.mixins;
 ///Memory i/o stream
 class MemoryStream : from!"freck.streams.stream".Stream {
 	import freck.streams.exception, freck.streams.stream;
-	import freck.streams.raw: writeRaw;
+	import freck.streams.util: writeRaw;
 
 protected:
 	ubyte[] buf;

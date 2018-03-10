@@ -34,3 +34,32 @@ void dumpToFile(from!"freck.streams.stream".Stream src, string fileName, size_t 
 		f.rawWrite(src.readUbyte(chunkSize));
 	}
 }
+
+/***********************************
+ * Writes a raw byte sequence of a variable type T to the stream
+ *
+ * Params:
+ *  s = The stream
+ *  var = The variable to write
+ */
+void writeRaw(T)(from!"freck.streams.stream".Stream s, const T var)
+{
+	union Buffer {ubyte[T.sizeof] b; T var;}
+	Buffer buf;
+	buf.var = var;
+	s.write(buf.b);
+}
+
+/***********************************
+ * Reads a raw byte sequence of type T from the stream
+ * Returns: The variable of type T
+ *
+ * Params:
+ *  s = The stream
+ */
+T readRaw(T)(from!"freck.streams.stream".Stream s) {
+	union Buffer {ubyte[T.sizeof] b; T var;}
+	Buffer buf;
+	buf.b = s.readUbyte(T.sizeof);
+	return buf.var;
+}
