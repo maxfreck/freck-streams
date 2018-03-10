@@ -67,20 +67,6 @@ public:
 		return new MemoryStream(buffer, e);
 	}
 
-	/***********************************
-	 * Saves stream content into a file
-	 *
-	 * Params:
-	 *  fileName = File name
-	 */
-	void saveAsFile(const string fileName)
-	{
-		import std.stdio: File;
-
-		auto f = File(fileName, "wb");
-		f.rawWrite(this.buf);
-	}
-
 	override ubyte readUbyte()
 	{
 		if ((this.ptr + ubyte.sizeof) > this.length) {
@@ -92,12 +78,8 @@ public:
 
 	override ubyte[] readUbyte(size_t n)
 	{
-		if ((this.ptr + n) > this.length) {
-			throw new StreamsException(boundsError);
-		}
-
 		auto a = this.ptr;
-		this.ptr += n;
+		this.ptr += ((this.ptr + n) > this.length) ? (this.length - this.ptr) : n;
 		return this.buf[a .. this.ptr];
 	}
 
