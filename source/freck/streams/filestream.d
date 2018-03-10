@@ -39,7 +39,7 @@ public:
 		return b[0];
 	}
 
-	override ubyte[] readUbyte(size_t n)
+	override ubyte[] readUbyte(in size_t n)
 	{
 		if ((f.tell + ubyte.sizeof*n) > f.size) {
 			throw new StreamsException(boundsError);
@@ -91,17 +91,17 @@ public:
 		return cast(uint)(b[0] << 24 | b[1] << 16 | b[2] << 8 | b[3]);
 	}
 
-	override void write(const ubyte b)
+	override void write(in ubyte b)
 	{
 		f.put(b);
 	}
 
-	override void write(const ubyte[] b)
+	override void write(in ubyte[] b)
 	{
 		f.rawWrite(b);
 	}
 
-	override void write(const ushort s)
+	override void write(in ushort s)
 	{
 		if (endian == platformEndian) {
 			f.put(s);
@@ -115,7 +115,7 @@ public:
 		write([cast(ubyte)(s >> 8), cast(ubyte)(s)]);
 	}
 
-	override void write(const uint i)
+	override void write(in uint i)
 	{
 		if (endian == platformEndian) {
 			f.put(i);
@@ -135,7 +135,7 @@ public:
 		return f.tell();
 	}
 
-	override ssize_t seek(const sdiff_t pos, const Seek origin = Seek.set)
+	override ssize_t seek(in sdiff_t pos, const Seek origin = Seek.set)
 	{
 		import std.stdio: SEEK_SET, SEEK_CUR, SEEK_END;
 
