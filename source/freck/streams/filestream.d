@@ -125,7 +125,7 @@ public:
 		return buf;
 	}
 
-	ubyte[] getContents()
+	override ubyte[] getContents()
 	{
 		auto ret = new ubyte[f.size];
 		f.rawRead(ret);

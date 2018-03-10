@@ -160,7 +160,7 @@ public:
 		return this.buf[a .. this.ptr];
 	}
 
-	ubyte[] getContents()
+	override ubyte[] getContents()
 	{
 		return this.buf;
 	}
