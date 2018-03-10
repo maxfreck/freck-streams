@@ -7,133 +7,60 @@
  */
 module freck.streams.stream;
 
-import freck.streams.mixins;
-
-///Endiannes: big, little
-enum Endian {
-	big,
-	little
-}
-
-///
-alias ssize_t = ulong;
-
-///
-alias sdiff_t = long;
-
-///
-enum Seek {
-	set,
-	cur,
-	end
-}
+public import freck.streams.streaminterface;
 
 ///Abstract i/o stream interface
-class Stream {
+class Stream: StreamInterface
+{
 protected:
 	Endian endian = Endian.little;
+	string[string] metadata;
 
 public:
-	/***********************************
-	 * Reads an unsigned byte from the stream
-	 * Returns: The unsigned byte read from the stream
-	 */
-	abstract ubyte readUbyte();
 
-	/***********************************
-	 * Reads an array of ubytes from the stream
-	 * Returns: The array of unsigned bytes read from the stream
-	 *
-	 * Params:
-	 *  n = The number of bytes to read from the stream
-	 */
-	abstract ubyte[] readUbyte(in size_t n);
-
-	/***********************************
-	 * Reads an unsigned short from the stream
-	 * Returns: The unsigned short read from the stream
-	 */
-	abstract ushort readUshort();
-
-	/***********************************
-	 * Reads an unsigned int from the stream
-	 * Returns: The unsigned int read from the stream
-	 */
-	abstract uint readUint();
-
-	/***********************************
-	 * Writes an unsigned byte to the stream
-	 *
-	 * Params:
-	 *  b = The ubyte to write to the stream
-	 */
-	abstract void write(in ubyte b);
-
-	///operator "~" equivalent for write()
-	typeof(this) opBinary(string op)(in ubyte b) if (op == "~")
+	this(string[string] metadata = null, Endian e = Endian.platform)
 	{
-		write(b);
-		return this;
+		this.metadata = metadata;
+		setEndian(e);
 	}
 
 	/***********************************
-	 * Writes an array of unsigned bytes to the stream
-	 *
-	 * Params:
-	 *  b = The array of ubyte to write to the stream
+	 * Sets the stream endianness. Affects on the byte order during read and write units and ulongs.
 	 */
-	abstract void write(in ubyte[] b);
-
-	///operator "~" equivalent for write()
-	typeof(this) opBinary(string op)(in ubyte[] b) if (op == "~")
+	void setEndian(Endian e)
 	{
-		write(b);
-		return this;
+		import freck.streams.util: platformEndian;
+		this.endian = (e == Endian.platform) ? platformEndian : e;
 	}
 
 	/***********************************
-	 * Writes an unsigned short to the stream
-	 *
-	 * Params:
-	 *  s = The ushort to write to the stream
+	 * Returns: the current srream endiannes
 	 */
-	abstract void write(in ushort s);
-
-	///operator "~" equivalent for write()
-	typeof(this) opBinary(string op)(in ushort s) if (op == "~")
+	Endian getEndian()
 	{
-		write(s);
-		return this;
+		return this.endian;
 	}
 
 	/***********************************
-	 * Writes an unsigned int to the stream
-	 *
-	 * Params:
-	 *  i = The uint to write to the stream
+	 * Returns: The lenght of the stream in bytes
 	 */
-	abstract void write(in uint i);
-
-	///operator "~" equivalent for write()
-	typeof(this) opBinary(string op)(in uint i) if (op == "~")
-	{
-		write(i);
-		return this;
-	}
-
-	///operator "~" equivalent for writeRaw()
-	typeof(this) opBinary(string op, T)(in T var) if (op == "~")
-	{
-		import freck.streams.raw;
-		this.writeRaw(var);
-		return this;
-	}
+	abstract ssize_t length();
 
 	/***********************************
 	 * Returns the current positon in the stream
 	 * Returns: The current positon in the stream
 	 */
-	abstract ssize_t seek();
+	abstract ssize_t tell();
+
+	/***********************************
+	 * Returns: True if the stream is empty (seek position == stream lenght)
+	 */
+	abstract bool isEmpty();
+
+	/***********************************
+	 * Returns: True if the stream is seekable, false otherwise
+	 */
+	abstract bool isSeekable();
 
 	/***********************************
 	 * Sets the current position in the stream
@@ -148,45 +75,57 @@ public:
 	 */
 	abstract ssize_t seek(in sdiff_t pos, in Seek origin = Seek.set);
 
-	///operator "<<" equivalent for writeRaw(-pos, Seek.cur)
-	typeof(this) opBinary(string op)(in sdiff_t pos) if (op == "<<")
+	/***********************************
+	 * Returns: True if the stream is writeble, false otherwise
+	 */
+	abstract bool isWritable();
+
+	/***********************************
+	 * Writes an unsigned byte to the stream
+	 *
+	 * Params:
+	 *  b = The ubyte to write to the stream
+	 */
+	abstract void write(in ubyte b);
+
+	/***********************************
+	 * Writes an array of unsigned bytes to the stream
+	 *
+	 * Params:
+	 *  b = The array of ubyte to write to the stream
+	 */
+	abstract void write(in ubyte[] b);
+
+	/***********************************
+	 * Returns: True if the stream is readable, false otherwise
+	 */
+	abstract bool isReadable();
+
+	/***********************************
+	 * Reads an unsigned byte from the stream
+	 * Returns: The unsigned byte read from the stream
+	 */
+	abstract ubyte read();
+
+	/***********************************
+	 * Reads an array of ubytes from the stream
+	 * Returns: The array of unsigned bytes read from the stream
+	 *
+	 * Params:
+	 *  n = The number of bytes to read from the stream
+	 */
+	abstract ubyte[] read(in size_t n);
+
+	/***********************************
+	* Returns: stream metadata by a specified key
+	*
+	* Params:
+	*  key = The metadata key
+	*/
+	string getMetadata(string key)
 	{
-		seek(-pos, Seek.cur);
-		return this;
-	}
-
-	///operator ">>" equivalent for writeRaw(pos, Seek.cur)
-	typeof(this) opBinary(string op)(in sdiff_t pos) if (op == ">>")
-	{
-		seek(pos, Seek.cur);
-		return this;
-	}
-
-
-	/***********************************
-	 * Returns: The lenght of the stream in bytes
-	 */
-	abstract @property ssize_t length();
-
-	/***********************************
-	 * Returns: True if the stream is empty (seek position == stream lenght)
-	 */
-	abstract @property bool isEmpty();
-
-	/***********************************
-	 * Sets the stream endianness. Affects on the byte order during read and write units and ulongs.
-	 */
-	void setEndian(Endian e) {
-		this.endian = e;
-	}
-
-	/***********************************
-	 * Returns the platform endianness.
-	 */
-	@safe static pure nothrow immutable(Endian) platformEndian()
-	{
-		union E {ushort s; ubyte[2] b; }
-		E e = {s: 0x0102};
-		return (e.b[0] == 0x02) ? Endian.little : Endian.big;
+		auto val = (key in metadata);
+		if (null != val) return *val;
+		return "";
 	}
 }
