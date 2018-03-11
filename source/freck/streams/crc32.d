@@ -9,7 +9,21 @@ module freck.streams.crc32;
 
 import freck.streams.mixins;
 
-private immutable uint[256] crcTable;
+private static immutable uint[256] crcTable = () {
+	uint[256] ret;
+	foreach (uint n; 0 .. 256) {
+		uint c = n;
+		foreach (uint k; 0 .. 8) {
+			if (c & 1) {
+				c = 0xedb88320L ^ (c >> 1);
+			} else {
+				c = c >> 1;
+			}
+		}
+		ret[n] = c;
+	}
+	return ret;
+}();
 
 /***********************************
  * Returns: The CRC32 hash computed from a stream
@@ -33,20 +47,6 @@ uint crc32(from!"freck.streams.stream".Stream s)
 	s.seek(seekSave);
 
 	return crc ^ 0xffffffff;
-}
-
-static this() {
-	foreach (uint n; 0 .. 256) {
-		uint c = n;
-		foreach (uint k; 0 .. 8) {
-			if (c & 1) {
-				c = 0xedb88320L ^ (c >> 1);
-			} else {
-				c = c >> 1;
-			}
-		}
-		crcTable[n] = c;
-	}
 }
 
 ///
