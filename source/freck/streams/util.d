@@ -67,6 +67,13 @@ T readRaw(T)(StreamInterface s) @trusted
 {
 	union Buffer {ubyte[T.sizeof] b; T var;}
 	Buffer buf;
+
+	auto ret = s.read(T.sizeof);
+
+	foreach (size_t i, ref v; buf.b) {
+		v = (i < ret.length) ? ret[i] : 0;
+	}
+
 	buf.b = s.read(T.sizeof);
 	return buf.var;
 }
@@ -167,7 +174,13 @@ T readScalar(T)(StreamInterface s) if (isScalarType!(T))
 {
 	union Buffer {ubyte[T.sizeof] b; T v;}
 	Buffer buf;
-	buf.b = s.read(T.sizeof);
+
+	auto ret = s.read(T.sizeof);
+
+	foreach (size_t i, ref v; buf.b) {
+		v = (i < ret.length) ? ret[i] : 0;
+	}
+
 	return (s.getEndian == Endian.little) ? nativeToLittleEndian(buf.v) : nativeToBigEndian(buf.v);
 }
 
