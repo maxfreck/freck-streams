@@ -54,7 +54,7 @@ public:
 
 	override bool isEmpty()
 	{
-		return f.eof();
+		return (f.size - f.tell) <= 0;
 	}
 
 	override bool isSeekable()
