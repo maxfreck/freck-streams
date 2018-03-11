@@ -28,7 +28,18 @@ protected:
 	File f;
 	string mode;
 
+	this(File f, string[string] metadata = null, Endian e = Endian.platform)
+	{
+		super(metadata, e);
+		this.mode = "wb+";
+		this.f = f;
+	}
+
 public:
+	static FileStream tmpfile(string[string] metadata = null, Endian e = Endian.platform)
+	{
+		return new FileStream(File.tmpfile, metadata, e);
+	}
 
 	this(string name, string mode = "rb", string[string] metadata = null, Endian e = Endian.platform)
 	{
@@ -148,4 +159,10 @@ unittest
 
 	assertRawWrite(createStream("/filestream-raw-write", "w+b"));
 	assertRawRead(createStream("/filestream-raw-read", "w+b"));
+
+	assertSimpleReads(FileStream.tmpfile());
+	assertSimpleWrites(FileStream.tmpfile());
+
+	assertRawWrite(FileStream.tmpfile());
+	assertRawRead(FileStream.tmpfile());
 }

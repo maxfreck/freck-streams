@@ -74,7 +74,6 @@ T readRaw(T)(StreamInterface s) @trusted
 		v = (i < ret.length) ? ret[i] : 0;
 	}
 
-	buf.b = s.read(T.sizeof);
 	return buf.var;
 }
 
