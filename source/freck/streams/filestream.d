@@ -130,7 +130,7 @@ public:
 
 	override ubyte[] read(in size_t n)
 	{
-		auto buf = new ubyte[(f.tell + n > f.size) ? f.size - f.tell : n];
+		auto buf = new ubyte[ cast(size_t)((f.tell + n > f.size) ? f.size - f.tell : n) ];
 		f.rawRead(buf);
 
 		return buf;
@@ -138,7 +138,7 @@ public:
 
 	override ubyte[] getContents()
 	{
-		auto ret = new ubyte[f.size];
+		auto ret = new ubyte[cast(size_t)(f.size)];
 		f.rawRead(ret);
 		return ret;
 	}
