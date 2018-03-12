@@ -7,7 +7,7 @@
  */
 module freck.streams.crc32;
 
-import freck.streams.mixins;
+import freck.streams.streaminterface;
 
 private static immutable uint[256] crcTable = () {
 	uint[256] ret;
@@ -31,10 +31,8 @@ private static immutable uint[256] crcTable = () {
  * Params:
  *  s = The stream
  */
-uint crc32(from!"freck.streams.stream".Stream s)
+uint crc32(StreamInterface s)
 {
-	import freck.streams.stream;
-
 	uint crc = 0xffffffff;
 
 	immutable auto seekSave = s.tell();
