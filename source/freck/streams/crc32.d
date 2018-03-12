@@ -50,7 +50,10 @@ uint crc32(StreamInterface s)
 ///
 unittest
 {
-	import freck.streams.memorystream;
+	import std.stdio: stdout, write, writeln;
+	import freck.streams.memorystream: MemoryStream;
+
+	write("Running CRC32 tests:"); stdout.flush;
 
 	foreach (str, result; [
 		"Hello, teenage America": 0x11fa4292,
@@ -60,4 +63,6 @@ unittest
 		auto stream = MemoryStream.fromBytes(cast(ubyte[])(str));
 		assert(stream.crc32 == result);
 	}
+
+	writeln(" OK");
 }

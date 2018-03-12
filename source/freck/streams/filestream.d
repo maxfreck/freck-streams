@@ -164,7 +164,8 @@ public:
 
 unittest
 {
-	import std.file;
+	import std.stdio: stdout, write, writeln;
+	import std.file: tempDir;
 	import freck.streams.tests;
 
 	auto createStream(string fileName, string mode)
@@ -172,15 +173,23 @@ unittest
 		return new FileStream(tempDir() ~ fileName, mode);
 	}
 
+	write("Running FileStream simple tests:"); stdout.flush;
 	assertSimpleReads(createStream("/filestream-smple-reads", "w+b"));
 	assertSimpleWrites(createStream("/filestream-smple-writes", "w+b"));
+	writeln(" OK");
 
+	write("Running FileStream raw i/o tests:"); stdout.flush;
 	assertRawWrite(createStream("/filestream-raw-write", "w+b"));
 	assertRawRead(createStream("/filestream-raw-read", "w+b"));
+	writeln(" OK");
 
+	write("Running FileStream.tmpfile simple tests:"); stdout.flush;
 	assertSimpleReads(FileStream.tmpfile());
 	assertSimpleWrites(FileStream.tmpfile());
+	writeln(" OK");
 
+	write("Running FileStream.tmpfile raw i/o tests:"); stdout.flush;
 	assertRawWrite(FileStream.tmpfile());
 	assertRawRead(FileStream.tmpfile());
+	writeln(" OK");
 }
