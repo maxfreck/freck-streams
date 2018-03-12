@@ -33,7 +33,7 @@ public:
 	 * Creates an empty memory stream
 	 *
 	 * Params:
-	 *  e = Endianness (default: little)
+	 *  e = Endianness (default: platform)
 	 */
 	static MemoryStream fromScratch(string[string] metadata = null, Endian e = Endian.platform)
 	{
@@ -45,7 +45,7 @@ public:
 	 *
 	 * Params:
 	 *  buf = Initial array
-	 *  e = Endianness (default: little)
+	 *  e = Endianness (default: platform)
 	 */
 	static MemoryStream fromBytes(ubyte[] buf, string[string] metadata = null, Endian e = Endian.platform)
 	{
@@ -57,7 +57,7 @@ public:
 	 *
 	 * Params:
 	 *  fileName = File name
-	 *  e = Endianness (default: little)
+	 *  e = Endianness (default: platform)
 	 */
 	static MemoryStream fromFile(in string fileName, string[string] metadata = null, Endian e = Endian.platform)
 	{
