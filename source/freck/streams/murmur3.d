@@ -90,7 +90,10 @@ private pure nothrow uint fmix32(uint h) {
 ///
 unittest
 {
-	import freck.streams.memorystream;
+	import std.stdio: stdout, write, writeln;
+	import freck.streams.memorystream: MemoryStream;
+
+	write("Running MurMur3 tests:"); stdout.flush;
 
 	foreach (str, result; [
 		"Hello, teenage America": 0xbe3880f1,
@@ -100,5 +103,7 @@ unittest
 		auto stream = MemoryStream.fromBytes(cast(ubyte[])(str));
 		assert(stream.murmur3 == result);
 	}
+
+	writeln(" OK");
 }
 

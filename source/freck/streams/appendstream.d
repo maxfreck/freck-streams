@@ -166,7 +166,10 @@ public:
 
 unittest
 {
-	import freck.streams.memorystream;
+	import std.stdio: stdout, write, writeln;
+	import freck.streams.memorystream: MemoryStream;
+
+	write("Running AppendStrem tests:"); stdout.flush;
 
 	auto m1 = MemoryStream.fromBytes(cast(ubyte[])[1, 2, 3]);
 	auto m2 = MemoryStream.fromBytes(cast(ubyte[])[4, 5, 6]);
@@ -182,4 +185,6 @@ unittest
 	assert(a1.getContents == cast(ubyte[])[1, 2, 3, 4, 5, 6]);
 
 	assert(a1.read(480) == cast(ubyte[])[1, 2, 3, 4, 5, 6]);
+
+	writeln(" OK");
 }

@@ -17,19 +17,48 @@ class FileStream : Stream
 	import freck.streams.exception;
 
 protected:
-	enum READABLE = [
+	static immutable READABLE = [
 		"r", "w+", "r+", "x+", "c+","rb", "w+b", "r+b", "x+b","c+b", "rt", "w+t", "r+t","x+t", "c+t", "a+"
 	];
 
-	enum WRITABLE = [
+	static immutable WRITABLE = [
 		"w", "w+", "rw", "r+", "x+","c+", "wb", "w+b", "r+b","x+b", "c+b", "w+t", "r+t","x+t", "c+t", "a", "a+"
 	];
 
 	File f;
 	string mode;
 
+	this(File f, string[string] metadata = null, Endian e = Endian.platform)
+	{
+		super(metadata, e);
+		this.mode = "wb+";
+		this.f = f;
+	}
+
 public:
 
+	/***********************************
+	 * Creates a temporary file stream
+	 * Returns: created FileStream
+	 *
+	 * Params:
+	 *  metadata = Stream metadata
+	 *  e = Endianness (default: platform)
+	 */
+	static FileStream tmpfile(string[string] metadata = null, Endian e = Endian.platform)
+	{
+		return new FileStream(File.tmpfile, metadata, e);
+	}
+
+	/***********************************
+	 * Class constructor
+	 *
+	 * Params:
+	 *  name = File name
+	 *  mode = File access mode
+	 *  metadata = Stream metadata
+	 *  e = Endianness (default: platform)
+	 */
 	this(string name, string mode = "rb", string[string] metadata = null, Endian e = Endian.platform)
 	{
 		super(metadata, e);
@@ -54,7 +83,7 @@ public:
 
 	override bool isEmpty()
 	{
-		return f.eof();
+		return (f.size - f.tell) <= 0;
 	}
 
 	override bool isSeekable()
@@ -66,7 +95,7 @@ public:
 	{
 		import std.stdio: SEEK_SET, SEEK_CUR, SEEK_END;
 
-		int orig = 0;
+		int orig;
 		with (Seek) final switch (origin) {
 			case set:
 				orig = SEEK_SET;
@@ -119,7 +148,7 @@ public:
 
 	override ubyte[] read(in size_t n)
 	{
-		auto buf = new ubyte[(f.tell + n > f.size) ? f.size - f.tell : n];
+		auto buf = new ubyte[ cast(size_t)((f.tell + n > f.size) ? f.size - f.tell : n) ];
 		f.rawRead(buf);
 
 		return buf;
@@ -127,7 +156,7 @@ public:
 
 	override ubyte[] getContents()
 	{
-		auto ret = new ubyte[f.size];
+		auto ret = new ubyte[cast(size_t)(f.size)];
 		f.rawRead(ret);
 		return ret;
 	}
@@ -135,7 +164,8 @@ public:
 
 unittest
 {
-	import std.file;
+	import std.stdio: stdout, write, writeln;
+	import std.file: tempDir;
 	import freck.streams.tests;
 
 	auto createStream(string fileName, string mode)
@@ -143,9 +173,23 @@ unittest
 		return new FileStream(tempDir() ~ fileName, mode);
 	}
 
+	write("Running FileStream simple tests:"); stdout.flush;
 	assertSimpleReads(createStream("/filestream-smple-reads", "w+b"));
 	assertSimpleWrites(createStream("/filestream-smple-writes", "w+b"));
+	writeln(" OK");
 
+	write("Running FileStream raw i/o tests:"); stdout.flush;
 	assertRawWrite(createStream("/filestream-raw-write", "w+b"));
 	assertRawRead(createStream("/filestream-raw-read", "w+b"));
+	writeln(" OK");
+
+	write("Running FileStream.tmpfile simple tests:"); stdout.flush;
+	assertSimpleReads(FileStream.tmpfile());
+	assertSimpleWrites(FileStream.tmpfile());
+	writeln(" OK");
+
+	write("Running FileStream.tmpfile raw i/o tests:"); stdout.flush;
+	assertRawWrite(FileStream.tmpfile());
+	assertRawRead(FileStream.tmpfile());
+	writeln(" OK");
 }

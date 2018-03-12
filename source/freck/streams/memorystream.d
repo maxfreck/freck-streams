@@ -33,7 +33,7 @@ public:
 	 * Creates an empty memory stream
 	 *
 	 * Params:
-	 *  e = Endianness (default: little)
+	 *  e = Endianness (default: platform)
 	 */
 	static MemoryStream fromScratch(string[string] metadata = null, Endian e = Endian.platform)
 	{
@@ -45,7 +45,7 @@ public:
 	 *
 	 * Params:
 	 *  buf = Initial array
-	 *  e = Endianness (default: little)
+	 *  e = Endianness (default: platform)
 	 */
 	static MemoryStream fromBytes(ubyte[] buf, string[string] metadata = null, Endian e = Endian.platform)
 	{
@@ -57,7 +57,7 @@ public:
 	 *
 	 * Params:
 	 *  fileName = File name
-	 *  e = Endianness (default: little)
+	 *  e = Endianness (default: platform)
 	 */
 	static MemoryStream fromFile(in string fileName, string[string] metadata = null, Endian e = Endian.platform)
 	{
@@ -169,11 +169,16 @@ public:
 
 unittest
 {
+	import std.stdio: stdout, write, writeln;
 	import freck.streams.tests;
 
+	write("Running MemoryStream simple tests:"); stdout.flush;
 	assertSimpleReads(MemoryStream.fromScratch());
 	assertSimpleWrites(MemoryStream.fromScratch());
+	writeln(" OK");
 
+	write("Running MemoryStream raw i/o tests:"); stdout.flush;
 	assertRawWrite(MemoryStream.fromScratch());
 	assertRawRead(MemoryStream.fromScratch());
+	writeln(" OK");
 }
