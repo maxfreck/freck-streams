@@ -17,11 +17,11 @@ class FileStream : Stream
 	import freck.streams.exception;
 
 protected:
-	enum READABLE = [
+	static immutable READABLE = [
 		"r", "w+", "r+", "x+", "c+","rb", "w+b", "r+b", "x+b","c+b", "rt", "w+t", "r+t","x+t", "c+t", "a+"
 	];
 
-	enum WRITABLE = [
+	static immutable WRITABLE = [
 		"w", "w+", "rw", "r+", "x+","c+", "wb", "w+b", "r+b","x+b", "c+b", "w+t", "r+t","x+t", "c+t", "a", "a+"
 	];
 
@@ -36,11 +36,29 @@ protected:
 	}
 
 public:
+
+	/***********************************
+	 * Creates a temporary file stream
+	 * Returns: created FileStream
+	 *
+	 * Params:
+	 *  metadata = Stream metadata
+	 *  e = Endianness (default: platform)
+	 */
 	static FileStream tmpfile(string[string] metadata = null, Endian e = Endian.platform)
 	{
 		return new FileStream(File.tmpfile, metadata, e);
 	}
 
+	/***********************************
+	 * Class constructor
+	 *
+	 * Params:
+	 *  name = File name
+	 *  mode = File access mode
+	 *  metadata = Stream metadata
+	 *  e = Endianness (default: platform)
+	 */
 	this(string name, string mode = "rb", string[string] metadata = null, Endian e = Endian.platform)
 	{
 		super(metadata, e);
@@ -77,7 +95,7 @@ public:
 	{
 		import std.stdio: SEEK_SET, SEEK_CUR, SEEK_END;
 
-		int orig = 0;
+		int orig;
 		with (Seek) final switch (origin) {
 			case set:
 				orig = SEEK_SET;
