@@ -7,7 +7,7 @@
  */
 module freck.streams.crc32;
 
-import freck.streams.mixins;
+import freck.streams.streaminterface;
 
 private static immutable uint[256] crcTable = () {
 	uint[256] ret;
@@ -31,10 +31,8 @@ private static immutable uint[256] crcTable = () {
  * Params:
  *  s = The stream
  */
-uint crc32(from!"freck.streams.stream".Stream s)
+uint crc32(StreamInterface s)
 {
-	import freck.streams.stream;
-
 	uint crc = 0xffffffff;
 
 	immutable auto seekSave = s.tell();
@@ -52,7 +50,10 @@ uint crc32(from!"freck.streams.stream".Stream s)
 ///
 unittest
 {
-	import freck.streams.memorystream;
+	import std.stdio: stdout, write, writeln;
+	import freck.streams.memorystream: MemoryStream;
+
+	write("Running CRC32 tests:"); stdout.flush;
 
 	foreach (str, result; [
 		"Hello, teenage America": 0x11fa4292,
@@ -62,4 +63,6 @@ unittest
 		auto stream = MemoryStream.fromBytes(cast(ubyte[])(str));
 		assert(stream.crc32 == result);
 	}
+
+	writeln(" OK");
 }
